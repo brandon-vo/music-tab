@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #181818;
+  --spotify: #1db954;
+  --spotify-hover: #1ed760;
+  --bv-dark-black: #110f0f;
+  --bv-grey: #313131;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow-x: hidden;
+  color: white;
+  background: var(--background);
+}
+
+button {
+  border-radius: 30px;
+  border: none;
+  padding: 10px 30px;
+  transition: 0.3s ease;
+  background-color: var(--bv-dark-black);
+}
+
+button:hover {
+  background-color: var(--bv-dark-grey);
+}
