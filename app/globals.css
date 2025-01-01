@@ -7,7 +7,8 @@
   --spotify: #1db954;
   --spotify-hover: #1ed760;
   --bv-dark-black: #110f0f;
-  --bv-grey: #313131;
+  --bv-light-grey: #9b9b9b;
+  --bv-dark-grey: #313131;
 }
 
 * {
@@ -19,6 +20,11 @@ body {
   overflow-x: hidden;
   color: white;
   background: var(--background);
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 button {
