@@ -97,8 +97,8 @@ export default function Home() {
 
   const handleLogin = () => {
     const clientID = "40006b94c67d48e9a0ab175351281474";
-    const redirectURI = "http://localhost:3000/login"; // TODO: Update redirect URI
-    // const redirectURI = "https://musictab.netlify.app/login";
+    // const redirectURI = "http://localhost:3000/login"; // TODO: Update redirect URI
+    const redirectURI = "https://musictab.netlify.app/login";
     const scopes = [
       "user-read-private",
       "user-read-recently-played",
