@@ -28,7 +28,7 @@ const Menu = ({ handleLogout }: MenuProps) => {
         className="w-full text-left px-4 hover:rounded-t-none rounded-md"
         onClick={handleLogout}
       >
-        <span className={`text-sm ${gothamMedium.className}`}>Log out</span>
+        <span className={`text-sm ${gothamMedium.className}`}>Logout</span>
       </button>
     </div>
   );

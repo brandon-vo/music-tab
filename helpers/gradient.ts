@@ -1,7 +1,5 @@
 import { Vibrant } from "node-vibrant/browser";
 
-let firstLoad = true;
-
 export const applyGradientFromAlbumImage = async (imgSrc: string) => {
   try {
     const palette = await Vibrant.from(imgSrc).getPalette();
@@ -34,12 +32,9 @@ export const applyGradientFromAlbumImage = async (imgSrc: string) => {
     if (overlay) {
       overlay.style.background = gradientPattern;
 
-      if (firstLoad) {
-        setTimeout(() => {
-          overlay.style.opacity = "1";
-          firstLoad = false;
-        }, 500);
-      }
+      setTimeout(() => {
+        overlay.style.opacity = "1";
+      }, 250);
     }
   } catch (err) {
     console.error("Error extracting colors:", err);

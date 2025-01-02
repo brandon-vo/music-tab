@@ -21,25 +21,29 @@ const MediaCard = ({
     recentlyPlayed[playlistIndex]?.track.name,
   );
   const [titleFontSize, setTitleFontSize] = useState("text-[1rem]");
-  const [showCardBackground, setShowCardBackground] = useState<boolean>(true);
-  const [showTrackNumber, setShowTrackNumber] = useState<boolean>(false);
-  const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
+  const [showCardBackground, setShowCardBackground] = useState<boolean>(
+    localStorage.getItem("showCardBackground") === "true",
+  );
+  const [showTrackNumber, setShowTrackNumber] = useState<boolean>(
+    localStorage.getItem("showTrackNumber") === "true",
+  );
+  const [showAnimations, setShowAnimations] = useState<boolean>(
+    localStorage.getItem("showAnimations") === "true",
+  );
+  const [dynamicBackground, setDynamicBackground] = useState<boolean>(
+    localStorage.getItem("dynamicBackground") === "true",
+  );
   const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    const trackNameLength = trackName.length;
-    if (trackNameLength > 30) {
+    const trackNameLength = trackName?.length;
+    if (trackName && trackNameLength > 30) {
       setTitleFontSize("text-sm");
     }
-    if (trackNameLength > 65) {
+    if (trackName && trackNameLength > 65) {
       setTrackName(trackName.slice(0, 65) + "...");
     }
-    setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
-    setShowTrackNumber(localStorage.getItem("showTrackNumber") === "true");
-    setShowCardBackground(
-      localStorage.getItem("showCardBackground") === "true",
-    );
   }, []);
 
   useEffect(() => {
@@ -47,7 +51,19 @@ const MediaCard = ({
   }, [playlistIndex]);
 
   const handleSwipe = (direction: "prev" | "next") => {
-    if (isAnimating) return; // Prevent overlapping animations
+    if (!showAnimations) {
+      setPlaylistIndex((prev) =>
+        direction === "prev"
+          ? prev === 0
+            ? recentlyPlayed.length - 1
+            : prev - 1
+          : prev === recentlyPlayed.length - 1
+            ? 0
+            : prev + 1,
+      );
+      return;
+    }
+    if (isAnimating) return;
     if (!dynamicBackground) document.body.style.background = "#181818";
     setSwipeDirection(direction);
     setIsAnimating(true);
@@ -63,7 +79,7 @@ const MediaCard = ({
             ? 0
             : prev + 1,
       );
-      setTimeout(() => setIsAnimating(false), 400);
+      setIsAnimating(false);
     }, 400);
   };
 

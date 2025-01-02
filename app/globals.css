@@ -29,7 +29,7 @@ body {
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
 }
 
@@ -48,7 +48,7 @@ a.linkButton:hover {
 }
 
 #background-overlay {
-  transition: opacity 0.5s ease-in-out;
+  transition: opacity 0.25s ease-in-out;
   background-repeat: no-repeat;
   background-size: cover;
   opacity: 0;

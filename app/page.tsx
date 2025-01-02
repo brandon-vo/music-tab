@@ -19,6 +19,20 @@ export default function Home() {
   const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
 
   useEffect(() => {
+    // Default values for settings
+    if (!localStorage.getItem("dynamicBackground")) {
+      localStorage.setItem("dynamicBackground", "true");
+    }
+    if (!localStorage.getItem("showCardBackground")) {
+      localStorage.setItem("showCardBackground", "true");
+    }
+    if (!localStorage.getItem("showTrackNumber")) {
+      localStorage.setItem("showTrackNumber", "false");
+    }
+    if (!localStorage.getItem("showAnimations")) {
+      localStorage.setItem("showAnimations", "true");
+    }
+
     const token = localStorage.getItem("spotifyAccessToken");
     const refresh = localStorage.getItem("spotifyRefreshToken");
 
