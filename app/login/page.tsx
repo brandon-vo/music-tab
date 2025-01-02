@@ -25,7 +25,7 @@ export default function Login() {
           return response.json();
         })
         .then((data) => {
-          console.log("Logged in", data);
+          //console.log("Logged in", data);
           localStorage.setItem("spotifyAccessToken", data.access_token);
           localStorage.setItem("spotifyRefreshToken", data.refresh_token);
           localStorage.setItem(

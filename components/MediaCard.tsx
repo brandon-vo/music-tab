@@ -23,6 +23,9 @@ const MediaCard = ({
   const [titleFontSize, setTitleFontSize] = useState("text-[1rem]");
   const [showCardBackground, setShowCardBackground] = useState<boolean>(true);
   const [showTrackNumber, setShowTrackNumber] = useState<boolean>(false);
+  const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
+  const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     const trackNameLength = trackName.length;
@@ -32,6 +35,7 @@ const MediaCard = ({
     if (trackNameLength > 65) {
       setTrackName(trackName.slice(0, 65) + "...");
     }
+    setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
     setShowTrackNumber(localStorage.getItem("showTrackNumber") === "true");
     setShowCardBackground(
       localStorage.getItem("showCardBackground") === "true",
@@ -42,18 +46,72 @@ const MediaCard = ({
     setTrackName(recentlyPlayed[playlistIndex]?.track.name);
   }, [playlistIndex]);
 
+  const handleSwipe = (direction: "prev" | "next") => {
+    if (isAnimating) return; // Prevent overlapping animations
+    if (!dynamicBackground) document.body.style.background = "#181818";
+    setSwipeDirection(direction);
+    setIsAnimating(true);
+
+    setTimeout(() => {
+      setSwipeDirection(null);
+      setPlaylistIndex((prev) =>
+        direction === "prev"
+          ? prev === 0
+            ? recentlyPlayed.length - 1
+            : prev - 1
+          : prev === recentlyPlayed.length - 1
+            ? 0
+            : prev + 1,
+      );
+      setTimeout(() => setIsAnimating(false), 400);
+    }, 400);
+  };
+
   return (
     <div className="flex justify-center items-center flex-col h-dvh translate-y-[-8%] scale-80 sm:scale-85 md:scale-90 lg:scale-100 xl:scale-110 transition-all">
       <div
         className={`relative flex flex-col justify-center items-center ${!showCardBackground ? "bg-transparent" : "bg-black/[.5] shadow-xl"} rounded-lg max-w-[300px]`}
       >
-        <img
-          src={recentlyPlayed[playlistIndex]?.track.album.images[0]?.url}
-          alt={recentlyPlayed[playlistIndex]?.track.album.name}
-          className="w-[300px] h-[300px] select-none rounded-t-lg"
-        />
-        <div className="flex flex-col justify-center items-center py-3">
+        <div
+          className={`relative w-[300px] h-[300px] overflow-hidden rounded-t-lg ${!showCardBackground && "rounded-b-lg"}`}
+        >
+          <img
+            src={recentlyPlayed[playlistIndex]?.track.album.images[0]?.url}
+            alt={recentlyPlayed[playlistIndex]?.track.album.name}
+            className={`absolute w-full h-full object-cover rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
+              ${
+                swipeDirection === "prev"
+                  ? "animate-swipeOutRight"
+                  : swipeDirection === "next"
+                    ? "animate-swipeOutLeft"
+                    : "opacity-100"
+              }`}
+          />
+          {swipeDirection && (
+            <img
+              src={
+                recentlyPlayed[
+                  swipeDirection === "prev"
+                    ? (playlistIndex === 0
+                        ? recentlyPlayed.length
+                        : playlistIndex) - 1
+                    : (playlistIndex + 1) % recentlyPlayed.length
+                ]?.track.album.images[0]?.url
+              }
+              alt="Next Image"
+              className={`absolute w-full h-full object-cover rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
+                ${
+                  swipeDirection === "prev"
+                    ? "animate-swipeInRight"
+                    : "animate-swipeInLeft"
+                }`}
+            />
+          )}
+        </div>
+
+        <div className="flex flex-col justify-center items-center py-2">
           <a
+            id="trackName"
             className={`text-bvWhite drop-shadow-lg text-center ${trackName?.length > 30 ? "px-2" : "px-3"} hover:underline`}
             href={recentlyPlayed[playlistIndex]?.track.external_urls.spotify}
             target="_blank"
@@ -68,15 +126,11 @@ const MediaCard = ({
 
           <div
             id="mediaControl"
-            className="flex justify-center items-center gap-4 py-1 rounded-md"
+            className="flex justify-center items-center gap-4 py-2 rounded-md"
           >
             <TbPlayerTrackPrevFilled
               className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"} hover:scale-110 active:scale-95 transition duration-50`}
-              onClick={() =>
-                setPlaylistIndex((prev) =>
-                  prev === 0 ? recentlyPlayed.length - 1 : prev - 1,
-                )
-              }
+              onClick={() => handleSwipe("prev")}
             />
             <IoRefreshCircleSharp
               className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"} hover:scale-110 active:scale-95 transition duration-50`}
@@ -88,11 +142,7 @@ const MediaCard = ({
             />
             <TbPlayerTrackNextFilled
               className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"} hover:scale-110 active:scale-95 transition duration-50`}
-              onClick={() =>
-                setPlaylistIndex((prev) =>
-                  prev === recentlyPlayed.length - 1 ? 0 : prev + 1,
-                )
-              }
+              onClick={() => handleSwipe("next")}
             />
           </div>
           {showTrackNumber && (

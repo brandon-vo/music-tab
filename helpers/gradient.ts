@@ -1,5 +1,7 @@
 import { Vibrant } from "node-vibrant/browser";
 
+let firstLoad = true;
+
 export const applyGradientFromAlbumImage = async (imgSrc: string) => {
   try {
     const palette = await Vibrant.from(imgSrc).getPalette();
@@ -28,9 +30,17 @@ export const applyGradientFromAlbumImage = async (imgSrc: string) => {
         ? `${gradientType}(${randomAngle}deg, ${stops.join(", ")})`
         : `${gradientType}(circle, ${stops.join(", ")})`;
 
-    document.body.style.background = gradientPattern;
-    document.body.style.backgroundRepeat = "no-repeat";
-    document.body.style.backgroundSize = "cover";
+    const overlay = document.getElementById("background-overlay");
+    if (overlay) {
+      overlay.style.background = gradientPattern;
+
+      if (firstLoad) {
+        setTimeout(() => {
+          overlay.style.opacity = "1";
+          firstLoad = false;
+        }, 500);
+      }
+    }
   } catch (err) {
     console.error("Error extracting colors:", err);
   }

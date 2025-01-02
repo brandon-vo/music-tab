@@ -181,6 +181,10 @@ export default function Home() {
 
   return (
     <>
+      <div
+        id="background-overlay"
+        className="fixed top-0 left-0 w-full h-full"
+      />
       <UserButton
         userProfile={userProfile}
         toggleMenu={toggleMenu}
