@@ -3,7 +3,7 @@ import { gothamBook } from "@/constants/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Music Tab",
+  title: "New Tab",
   description: "View beautiful album covers",
 };
 

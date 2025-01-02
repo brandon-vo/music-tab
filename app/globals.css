@@ -7,7 +7,8 @@
   --spotify: #1db954;
   --spotify-hover: #1ed760;
   --bv-dark-black: #110f0f;
-  --bv-light-grey: #9b9b9b;
+  --bv-light-grey: #afafaf;
+  --bv-grey: #797979;
   --bv-dark-grey: #313131;
 }
 
@@ -28,7 +29,7 @@ h1 {
 }
 
 button {
-  border-radius: 30px;
+  border-radius: 8px;
   border: none;
   padding: 10px 30px;
   transition: 0.3s ease;

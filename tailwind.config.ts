@@ -13,11 +13,10 @@ export default {
         foreground: "var(--foreground)",
         spotify: "var(--spotify)",
         spotifyHover: "var(--spotify-hover)",
+        bvDarkBlack: "var(--bv-dark-black)",
         bvLightGrey: "var(--bv-light-grey)",
+        bvGrey: "var(--bv-grey)",
         bvDarkGrey: "var(--bv-dark-grey)",
-      },
-      boxShadow: {
-        album: "5px 5px 7px rgba(33, 33, 33, 0.1)",
       },
     },
   },

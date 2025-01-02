@@ -1,50 +1,93 @@
 "use client";
-import MusicTab from "@/components/MusicTab";
-import { gothamMedium } from "@/constants/fonts";
-import { fetchRecentlyPlayed, fetchUserProfile } from "@/helpers/spotifyAPI";
 import { useEffect, useState } from "react";
-import { IoRefreshCircleSharp } from "react-icons/io5";
-import {
-  TbPlayerTrackPrevFilled,
-  TbPlayerTrackNextFilled,
-} from "react-icons/tb";
-import { FaCaretDown } from "react-icons/fa";
+import MusicTab from "@/components/MusicTab";
+import UserButton from "@/components/UserButton";
+import Menu from "@/components/Menu";
+import SpotifyLogo from "@/components/SpotifyLogo";
+import MediaCard from "@/components/MediaCard";
+import { applyGradientFromAlbumImage } from "@/helpers/gradient";
+import { User } from "@/types/User";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<any | null>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
   const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [playlistIndex, setPlaylistIndex] = useState<number>(0);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const token = localStorage.getItem("spotifyAccessToken");
-    if (token) {
+    const refresh = localStorage.getItem("spotifyRefreshToken");
+
+    if (token && refresh) {
+      fetchUserProfile(token);
+      fetchRecentlyPlayed(token);
       setIsLoggedIn(true);
-      fetchRecentlyPlayedData(token);
-      fetchUserProfileData(token);
     } else {
       setIsLoggedIn(false);
     }
   }, []);
 
-  const fetchUserProfileData = async (token: string) => {
-    const data = await fetchUserProfile(token);
-    if (data && !data.error) {
-      setUser(data);
-    } else {
-      handleLogout();
+  useEffect(() => {
+    console.log(userProfile);
+    if (recentlyPlayed.length > 0) {
+      const albumImageUrl =
+        recentlyPlayed[playlistIndex]?.track.album.images[0]?.url;
+      if (albumImageUrl) {
+        applyGradientFromAlbumImage(albumImageUrl);
+      }
+    }
+  }, [playlistIndex, recentlyPlayed]);
+
+  const toggleMenu = () => {
+    setMenuOpen((prev) => !prev);
+  };
+
+  const fetchUserProfile = async (token: string) => {
+    try {
+      const response = await fetch("https://api.spotify.com/v1/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data);
+      } else if (response.status === 401) {
+        await handleTokenRefresh();
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
     }
   };
 
-  const fetchRecentlyPlayedData = async (token: string) => {
+  const fetchRecentlyPlayed = async (token: string) => {
     setLoading(true);
-    const data = await fetchRecentlyPlayed(token);
-    if (data && !data.error) {
-      setRecentlyPlayed(data);
-    } else {
-      handleLogout();
+    try {
+      const response = await fetch(
+        `https://api.spotify.com/v1/me/player/recently-played?limit=50`, // limit=20 by default
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setRecentlyPlayed(data.items);
+        console.log(data.items);
+        if (data.items.length > 0) {
+          setPlaylistIndex(Math.floor(Math.random() * data.items.length));
+        }
+      } else if (response.status === 401) {
+        await handleTokenRefresh();
+      }
+    } catch (error) {
+      console.error("Error fetching recently played tracks:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleLogin = () => {
@@ -71,11 +114,46 @@ export default function Home() {
 
   const handleLogout = () => {
     localStorage.removeItem("spotifyAccessToken");
+    localStorage.removeItem("spotifyRefreshToken");
+    localStorage.removeItem("spotifyTokenExpiry");
     setIsLoggedIn(false);
+    setUserProfile(null);
     setRecentlyPlayed([]);
   };
 
-  if (isLoggedIn === null) {
+  const handleTokenRefresh = async () => {
+    const refreshToken = localStorage.getItem("spotifyRefreshToken");
+    if (!refreshToken) {
+      handleLogout();
+      return;
+    }
+
+    try {
+      const response = await fetch("/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const newAccessToken = data.access_token;
+        localStorage.setItem("spotifyAccessToken", newAccessToken);
+        fetchUserProfile(newAccessToken);
+        fetchRecentlyPlayed(newAccessToken);
+      } else {
+        handleLogout();
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      handleLogout();
+    }
+  };
+
+  // Loading state
+  if (isLoggedIn === null || loading) {
     return <MusicTab />;
   }
 
@@ -95,61 +173,21 @@ export default function Home() {
 
   return (
     <>
-      <button className="absolute top-2.5 right-2.5 flex justify-center rounded-3xl text-white px-8 py-1.5">
-        <img
-          src={user?.images[0]?.url}
-          alt={user?.display_name}
-          className="w-[28px] h-[28px] rounded-[20px] absolute left-[4px]"
-        />
-        <span className={`${gothamMedium.className} pl-[13px]`}>
-          {user?.display_name}
-        </span>
-        <FaCaretDown className="text-sm w-[20px] h-[20px] absolute right-[4px] bottom-[5px]" />
-      </button>
-      <div className="flex justify-center items-center flex-col h-screen translate-y-[-8%]">
-        <img
-          src={recentlyPlayed[0]?.track.album.images[0]?.url}
-          alt={recentlyPlayed[0]?.track.album.name}
-          className="w-[300px] h-[300px] pb-[5px] shadow-album"
-        />
-        <a
-          className="focus:underline"
-          href={recentlyPlayed[0]?.track.external_urls.spotify}
-          target="_blank"
-        >
-          <span className="text-[1rem]">{recentlyPlayed[0]?.track.name}</span>
-        </a>
-        <span className="text-[0.7rem] text-bv-dark-grey">
-          {recentlyPlayed[0]?.track.artists[0]?.name}
-        </span>
-        {/* refresh */}
+      <UserButton
+        userProfile={userProfile}
+        toggleMenu={toggleMenu}
+        menuOpen={menuOpen}
+      />
 
-        <div
-          id="mediaControl"
-          className="flex justify-center items-center mt-4 gap-4"
-        >
-          <TbPlayerTrackPrevFilled
-            className="w-[30px] h-[30px] bg-bv-dark-grey"
-            onClick={() => alert("prev")}
-          />
-          <IoRefreshCircleSharp
-            className="w-[30px] h-[30px]"
-            onClick={() => alert("refresh")}
-          />
-          <TbPlayerTrackNextFilled
-            className="w-[30px] h-[30px]"
-            onClick={() => alert("next")}
-          />
-        </div>
-      </div>
+      {menuOpen && <Menu handleLogout={handleLogout} />}
 
-      <a className="" href="http://www.spotify.com" target="_blank">
-        <img
-          className="absolute w-[80px] bottom-16 left-0 right-0 my-0 mx-auto"
-          src="images/spotify_logo_green.png"
-          alt="Spotify"
-        />
-      </a>
+      <MediaCard
+        recentlyPlayed={recentlyPlayed}
+        playlistIndex={playlistIndex}
+        setPlaylistIndex={setPlaylistIndex}
+      />
+
+      <SpotifyLogo />
     </>
   );
 }

@@ -27,6 +27,11 @@ export default function Login() {
         .then((data) => {
           console.log("Logged in", data);
           localStorage.setItem("spotifyAccessToken", data.access_token);
+          localStorage.setItem("spotifyRefreshToken", data.refresh_token);
+          localStorage.setItem(
+            "spotifyTokenExpiry",
+            String(Date.now() + data.expires_in * 1000),
+          );
           router.push("/");
         })
         .catch((error) => {
