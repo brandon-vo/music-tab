@@ -11,7 +11,7 @@ interface UserButtonProps {
 const UserButton = ({ userProfile, toggleMenu, menuOpen }: UserButtonProps) => {
   return (
     <button
-      className="absolute top-2.5 right-2.5 flex justify-center rounded-3xl text-white px-8 py-1.5 z-[2]"
+      className="absolute top-2.5 right-2.5 flex justify-center rounded-3xl text-bvWhite px-8 py-1.5 z-[2]"
       onClick={toggleMenu}
     >
       <div className="flex items-center">
@@ -21,7 +21,7 @@ const UserButton = ({ userProfile, toggleMenu, menuOpen }: UserButtonProps) => {
           className="w-[28px] h-[28px] rounded-[20px] absolute left-[3px]"
         />
         <span
-          className={`text-sm font-semibold ${gothamBook.className} pl-[13px]`}
+          className={`text-sm font-semibold ${gothamBook.className} pl-[10px]`}
         >
           {userProfile?.display_name || "You"}
         </span>

@@ -7,6 +7,7 @@ import SpotifyLogo from "@/components/SpotifyLogo";
 import MediaCard from "@/components/MediaCard";
 import { applyGradientFromAlbumImage } from "@/helpers/gradient";
 import { User } from "@/types/User";
+import { gothamBook } from "@/constants/fonts";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -15,10 +16,15 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [playlistIndex, setPlaylistIndex] = useState<number>(0);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
 
   useEffect(() => {
     const token = localStorage.getItem("spotifyAccessToken");
     const refresh = localStorage.getItem("spotifyRefreshToken");
+
+    if (localStorage.getItem("dynamicBackground") === "false") {
+      setDynamicBackground(false);
+    }
 
     if (token && refresh) {
       fetchUserProfile(token);
@@ -30,11 +36,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    console.log(userProfile);
+    // console.log(userProfile);
     if (recentlyPlayed.length > 0) {
       const albumImageUrl =
         recentlyPlayed[playlistIndex]?.track.album.images[0]?.url;
-      if (albumImageUrl) {
+      if (albumImageUrl && dynamicBackground) {
         applyGradientFromAlbumImage(albumImageUrl);
       }
     }
@@ -76,7 +82,6 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setRecentlyPlayed(data.items);
-        console.log(data.items);
         if (data.items.length > 0) {
           setPlaylistIndex(Math.floor(Math.random() * data.items.length));
         }
@@ -92,8 +97,8 @@ export default function Home() {
 
   const handleLogin = () => {
     const clientID = "40006b94c67d48e9a0ab175351281474";
-    // const redirectURI = "http://localhost:3000/login"; // TODO: Update redirect URI
-    const redirectURI = "https://musictab.netlify.app/login";
+    const redirectURI = "http://localhost:3000/login"; // TODO: Update redirect URI
+    // const redirectURI = "https://musictab.netlify.app/login";
     const scopes = [
       "user-read-private",
       "user-read-recently-played",
@@ -162,10 +167,12 @@ export default function Home() {
     return (
       <>
         <button
-          className="absolute top-2.5 right-2.5 rounded-3xl text-white px-8 py-1.5 bg-spotify hover:bg-spotifyHover"
+          className="absolute top-2.5 right-2.5 rounded-3xl text-bvWhite px-8 py-1.5 bg-spotify hover:bg-spotifyHover"
           onClick={handleLogin}
         >
-          <span className="text-sm">Login</span>
+          <span className={`text-sm font-semibold ${gothamBook.className}`}>
+            Login
+          </span>
         </button>
         <MusicTab />
       </>
@@ -188,7 +195,7 @@ export default function Home() {
         setPlaylistIndex={setPlaylistIndex}
       />
 
-      <SpotifyLogo />
+      <SpotifyLogo colour={`${dynamicBackground ? "white" : "green"}`} />
     </>
   );
 }

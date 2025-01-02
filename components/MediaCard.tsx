@@ -1,4 +1,5 @@
 import { applyGradientFromAlbumImage } from "@/helpers/gradient";
+import { use, useEffect, useState } from "react";
 import { IoRefreshCircleSharp } from "react-icons/io5";
 import {
   TbPlayerTrackNextFilled,
@@ -16,25 +17,52 @@ const MediaCard = ({
   playlistIndex,
   setPlaylistIndex,
 }: MediaCardProps) => {
+  const [trackName, setTrackName] = useState(
+    recentlyPlayed[playlistIndex]?.track.name,
+  );
+  const [titleFontSize, setTitleFontSize] = useState("text-[1rem]");
+  const [showCardBackground, setShowCardBackground] = useState<boolean>(true);
+  const [showTrackNumber, setShowTrackNumber] = useState<boolean>(false);
+
+  useEffect(() => {
+    const trackNameLength = trackName.length;
+    if (trackNameLength > 30) {
+      setTitleFontSize("text-sm");
+    }
+    if (trackNameLength > 65) {
+      setTrackName(trackName.slice(0, 65) + "...");
+    }
+    setShowTrackNumber(localStorage.getItem("showTrackNumber") === "true");
+    setShowCardBackground(
+      localStorage.getItem("showCardBackground") === "true",
+    );
+  }, []);
+
+  useEffect(() => {
+    setTrackName(recentlyPlayed[playlistIndex]?.track.name);
+  }, [playlistIndex]);
+
   return (
-    <div className="flex justify-center items-center flex-col h-screen translate-y-[-8%] scale-80 md:scale-85 lg:scale-100 transition-all">
-      <div className="flex flex-col justify-center items-center bg-black/[.5] shadow-xl rounded-sm max-w-[300px]">
+    <div className="flex justify-center items-center flex-col h-dvh translate-y-[-8%] scale-80 sm:scale-85 md:scale-90 lg:scale-100 xl:scale-110 transition-all">
+      <div
+        className={`relative flex flex-col justify-center items-center ${!showCardBackground ? "bg-transparent" : "bg-black/[.5] shadow-xl"} rounded-lg max-w-[300px]`}
+      >
         <img
           src={recentlyPlayed[playlistIndex]?.track.album.images[0]?.url}
           alt={recentlyPlayed[playlistIndex]?.track.album.name}
-          className="w-[300px] h-[300px] select-none rounded-tr-sm"
+          className="w-[300px] h-[300px] select-none rounded-t-lg"
         />
         <div className="flex flex-col justify-center items-center py-3">
           <a
-            className="text-center px-3 hover:underline"
+            className={`text-bvWhite drop-shadow-lg text-center ${trackName?.length > 30 ? "px-2" : "px-3"} hover:underline`}
             href={recentlyPlayed[playlistIndex]?.track.external_urls.spotify}
             target="_blank"
           >
-            <span className="text-[1rem]">
-              {recentlyPlayed[playlistIndex]?.track.name}
-            </span>
+            <span className={`${titleFontSize}`}>{trackName}</span>
           </a>
-          <span className="text-[0.7rem] text-bvLightGrey">
+          <span
+            className={`text-[0.7rem] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"}`}
+          >
             {recentlyPlayed[playlistIndex]?.track.artists[0]?.name}
           </span>
 
@@ -43,7 +71,7 @@ const MediaCard = ({
             className="flex justify-center items-center gap-4 py-1 rounded-md"
           >
             <TbPlayerTrackPrevFilled
-              className="w-[30px] h-[30px] text-bvGrey hover:scale-110"
+              className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"} hover:scale-110 active:scale-95 transition duration-50`}
               onClick={() =>
                 setPlaylistIndex((prev) =>
                   prev === 0 ? recentlyPlayed.length - 1 : prev - 1,
@@ -51,7 +79,7 @@ const MediaCard = ({
               }
             />
             <IoRefreshCircleSharp
-              className="w-[30px] h-[30px] text-bvLightGrey hover:scale-110"
+              className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"} hover:scale-110 active:scale-95 transition duration-50`}
               onClick={() =>
                 applyGradientFromAlbumImage(
                   recentlyPlayed[playlistIndex]?.track.album.images[0]?.url,
@@ -59,7 +87,7 @@ const MediaCard = ({
               }
             />
             <TbPlayerTrackNextFilled
-              className="w-[30px] h-[30px] text-bvGrey hover:scale-110"
+              className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"} hover:scale-110 active:scale-95 transition duration-50`}
               onClick={() =>
                 setPlaylistIndex((prev) =>
                   prev === recentlyPlayed.length - 1 ? 0 : prev + 1,
@@ -67,6 +95,13 @@ const MediaCard = ({
               }
             />
           </div>
+          {showTrackNumber && (
+            <span
+              className={`absolute ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"} text-[0.7rem] bottom-1 right-2 select-none`}
+            >
+              {playlistIndex + 1}/{recentlyPlayed.length}
+            </span>
+          )}
         </div>
       </div>
     </div>

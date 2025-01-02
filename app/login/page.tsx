@@ -43,7 +43,7 @@ export default function Login() {
   }, [router]);
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center h-dvh">
       <h1>Logging in...</h1>
     </div>
   );

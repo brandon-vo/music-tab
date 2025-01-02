@@ -13,6 +13,8 @@ export default {
         foreground: "var(--foreground)",
         spotify: "var(--spotify)",
         spotifyHover: "var(--spotify-hover)",
+        bvWhite: "var(--bv-white)",
+        bvBlack: "var(--bv-black)",
         bvDarkBlack: "var(--bv-dark-black)",
         bvLightGrey: "var(--bv-light-grey)",
         bvGrey: "var(--bv-grey)",
