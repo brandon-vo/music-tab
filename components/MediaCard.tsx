@@ -21,20 +21,15 @@ const MediaCard = ({
     recentlyPlayed[playlistIndex]?.track.name,
   );
   const [titleFontSize, setTitleFontSize] = useState("text-[1rem]");
-  const [showCardBackground, setShowCardBackground] = useState<boolean>(
-    localStorage.getItem("showCardBackground") === "true",
-  );
-  const [showTrackNumber, setShowTrackNumber] = useState<boolean>(
-    localStorage.getItem("showTrackNumber") === "true",
-  );
-  const [showAnimations, setShowAnimations] = useState<boolean>(
-    localStorage.getItem("showAnimations") === "true",
-  );
-  const [dynamicBackground, setDynamicBackground] = useState<boolean>(
-    localStorage.getItem("dynamicBackground") === "true",
-  );
   const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const showCardBackground =
+    localStorage.getItem("showCardBackground") === "true";
+  const showTrackNumber = localStorage.getItem("showTrackNumber") === "true";
+  const showAnimations = localStorage.getItem("showAnimations") === "true";
+  const dynamicBackground =
+    localStorage.getItem("dynamicBackground") === "true";
 
   useEffect(() => {
     const trackNameLength = trackName?.length;

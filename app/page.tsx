@@ -9,7 +9,6 @@ import { applyGradientFromAlbumImage } from "@/helpers/gradient";
 import { User } from "@/types/User";
 import { gothamBook } from "@/constants/fonts";
 import { setDefaultSettings } from "@/helpers/user";
-import { APP_VERSION } from "@/constants/version";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -21,16 +20,8 @@ export default function Home() {
   const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
 
   useEffect(() => {
-    const currentVersion = localStorage.getItem("appVersion");
-
-    if (currentVersion !== APP_VERSION) {
-      localStorage.clear();
-      localStorage.setItem("appVersion", APP_VERSION);
-      console.log(
-        "LocalStorage reset to initial state for version:",
-        APP_VERSION,
-      );
-    }
+    // temp code
+    localStorage.removeItem("appVersion");
 
     setDefaultSettings();
 
@@ -78,12 +69,11 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setUserProfile(data);
+      } else if (response.status === 401) {
+        await handleTokenRefresh();
       } else {
         console.error("Error fetching user profile: response=", response);
       }
-      // else if (response.status === 401) {
-      //   await handleTokenRefresh();
-      // }
     } catch (error) {
       console.error("Error fetching user profile: error=", error);
     }
@@ -105,13 +95,12 @@ export default function Home() {
         setRecentlyPlayed(data.items); // All recently played tracks
         if (data.items.length > 0) {
           setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
+        } else if (response.status === 401) {
+          await handleTokenRefresh();
+        } else {
+          console.error("Error fetching recently played tracks:", response);
         }
-      } else {
-        console.error("Error fetching recently played tracks:", response);
       }
-      // else if (response.status === 401) {
-      //   await handleTokenRefresh();
-      // }
     } catch (error) {
       console.error("Error fetching recently played tracks:", error);
     } finally {
