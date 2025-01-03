@@ -94,7 +94,7 @@ const MediaCard = ({
           <img
             src={recentlyPlayed[playlistIndex]?.track.album.images[0]?.url}
             alt={recentlyPlayed[playlistIndex]?.track.album.name}
-            className={`absolute w-full h-full object-cover rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
+            className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
               ${
                 swipeDirection === "prev"
                   ? "animate-swipeOutRight"
@@ -115,7 +115,7 @@ const MediaCard = ({
                 ]?.track.album.images[0]?.url
               }
               alt="Next Image"
-              className={`absolute w-full h-full object-cover rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
+              className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
                 ${
                   swipeDirection === "prev"
                     ? "animate-swipeInRight"

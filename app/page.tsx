@@ -8,6 +8,8 @@ import MediaCard from "@/components/MediaCard";
 import { applyGradientFromAlbumImage } from "@/helpers/gradient";
 import { User } from "@/types/User";
 import { gothamBook } from "@/constants/fonts";
+import { setDefaultSettings } from "@/helpers/user";
+import { APP_VERSION } from "@/constants/version";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -19,28 +21,31 @@ export default function Home() {
   const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
 
   useEffect(() => {
-    // Default values for settings
-    if (!localStorage.getItem("dynamicBackground")) {
-      localStorage.setItem("dynamicBackground", "true");
+    const currentVersion = localStorage.getItem("appVersion");
+
+    if (currentVersion !== APP_VERSION) {
+      localStorage.clear();
+      localStorage.setItem("appVersion", APP_VERSION);
+      console.log(
+        "LocalStorage reset to initial state for version:",
+        APP_VERSION,
+      );
     }
-    if (!localStorage.getItem("showCardBackground")) {
-      localStorage.setItem("showCardBackground", "true");
-    }
-    if (!localStorage.getItem("showTrackNumber")) {
-      localStorage.setItem("showTrackNumber", "false");
-    }
-    if (!localStorage.getItem("showAnimations")) {
-      localStorage.setItem("showAnimations", "true");
-    }
+
+    setDefaultSettings();
+
+    setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
 
     const token = localStorage.getItem("spotifyAccessToken");
     const refresh = localStorage.getItem("spotifyRefreshToken");
+    const expiry = localStorage.getItem("spotifyTokenExpiry");
 
-    if (localStorage.getItem("dynamicBackground") === "false") {
-      setDynamicBackground(false);
-    }
-
-    if (token && refresh) {
+    if (token && refresh && expiry) {
+      // Check if token has expired
+      if (Date.now() > parseInt(expiry)) {
+        handleTokenRefresh();
+        return;
+      }
       fetchUserProfile(token);
       fetchRecentlyPlayed(token);
       setIsLoggedIn(true);
@@ -50,7 +55,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // console.log(userProfile);
     if (recentlyPlayed.length > 0) {
       const albumImageUrl =
         recentlyPlayed[playlistIndex]?.track.album.images[0]?.url;
@@ -74,11 +78,14 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setUserProfile(data);
-      } else if (response.status === 401) {
-        await handleTokenRefresh();
+      } else {
+        console.error("Error fetching user profile: response=", response);
       }
+      // else if (response.status === 401) {
+      //   await handleTokenRefresh();
+      // }
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      console.error("Error fetching user profile: error=", error);
     }
   };
 
@@ -95,13 +102,16 @@ export default function Home() {
       );
       if (response.ok) {
         const data = await response.json();
-        setRecentlyPlayed(data.items);
+        setRecentlyPlayed(data.items); // All recently played tracks
         if (data.items.length > 0) {
-          setPlaylistIndex(Math.floor(Math.random() * data.items.length));
+          setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
         }
-      } else if (response.status === 401) {
-        await handleTokenRefresh();
+      } else {
+        console.error("Error fetching recently played tracks:", response);
       }
+      // else if (response.status === 401) {
+      //   await handleTokenRefresh();
+      // }
     } catch (error) {
       console.error("Error fetching recently played tracks:", error);
     } finally {
@@ -110,9 +120,18 @@ export default function Home() {
   };
 
   const handleLogin = () => {
+    // We shouldnt need to clear these here, but just in case
+    localStorage.removeItem("spotifyAccessToken");
+    localStorage.removeItem("spotifyRefreshToken");
+    localStorage.removeItem("spotifyTokenExpiry");
+
     const clientID = "40006b94c67d48e9a0ab175351281474";
-    // const redirectURI = "http://localhost:3000/login"; // TODO: Update redirect URI
-    const redirectURI = "https://musictab.netlify.app/login";
+
+    const redirectURI =
+      window.location.hostname === "localhost"
+        ? "http://localhost:3000/login"
+        : "https://musictab.netlify.app/login";
+
     const scopes = [
       "user-read-private",
       "user-read-recently-played",
@@ -121,13 +140,11 @@ export default function Home() {
 
     const spotifyAuthURL =
       `https://accounts.spotify.com/authorize` +
-      "?client_id=" +
-      clientID +
-      "&response_type=code" +
-      "&redirect_uri=" +
-      encodeURI(redirectURI) +
-      "&scope=" +
-      scopes;
+      `?client_id=${clientID}` +
+      `&response_type=code` +
+      `&redirect_uri=${encodeURIComponent(redirectURI)}` +
+      `&scope=${encodeURIComponent(scopes)}` +
+      `&show_dialog=true`;
 
     window.location.href = spotifyAuthURL;
   };
@@ -144,6 +161,7 @@ export default function Home() {
   const handleTokenRefresh = async () => {
     const refreshToken = localStorage.getItem("spotifyRefreshToken");
     if (!refreshToken) {
+      // Probably redundant
       handleLogout();
       return;
     }
@@ -160,14 +178,24 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         const newAccessToken = data.access_token;
+
         localStorage.setItem("spotifyAccessToken", newAccessToken);
+
+        // Reset expiry time
+        localStorage.setItem(
+          "spotifyTokenExpiry",
+          String(Date.now() + data.expires_in * 1000),
+        );
+
         fetchUserProfile(newAccessToken);
         fetchRecentlyPlayed(newAccessToken);
+        setIsLoggedIn(true);
       } else {
+        console.error("Error refreshing token: response=", response);
         handleLogout();
       }
     } catch (error) {
-      console.error("Error refreshing token:", error);
+      console.error("Error refreshing token: error=", error);
       handleLogout();
     }
   };
