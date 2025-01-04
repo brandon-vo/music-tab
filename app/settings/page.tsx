@@ -28,7 +28,7 @@ export default function Settings() {
       showCardBackground: localStorage.getItem("showCardBackground") === "true",
       showTrackNumber: localStorage.getItem("showTrackNumber") === "true",
       showAnimations: localStorage.getItem("showAnimations") === "true",
-      getLatestSong: localStorage.getItem("latestSongMode") === "true",
+      getLatestSong: localStorage.getItem("getLatestSong") === "true",
     };
 
     setSettings(storedSettings);

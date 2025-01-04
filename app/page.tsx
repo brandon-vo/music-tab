@@ -93,7 +93,7 @@ export default function Home() {
         const data = await response.json();
         setRecentlyPlayed(data.items); // All recently played tracks
         if (data.items.length > 0) {
-          if (localStorage.getItem("latestSongMode") === "true") {
+          if (localStorage.getItem("getLatestSong") === "true") {
             setPlaylistIndex(0); // Latest track
           } else {
             setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
