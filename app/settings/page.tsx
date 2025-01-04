@@ -1,55 +1,43 @@
 "use client";
 
+import Switch from "@/components/Switch";
+import { SettingsLabels } from "@/constants/SettingsLabels";
+import { SettingsType } from "@/types/Settings";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Settings() {
-  const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
-  const [showCardBackground, setShowCardBackground] = useState<boolean>(true);
-  const [showTrackNumber, setShowTrackNumber] = useState<boolean>(false);
-  const [showAnimations, setShowAnimations] = useState<boolean>(true);
+  const [settings, setSettings] = useState<SettingsType>({
+    dynamicBackground: true,
+    showCardBackground: true,
+    showTrackNumber: false,
+    showAnimations: true,
+    getLatestSong: false,
+  });
 
   useEffect(() => {
     // redirect to login page if not logged in
     const token = localStorage.getItem("spotifyAccessToken");
     if (!token) {
-      window.location.href = "/";
+      redirect("/");
     }
 
-    const dynamicBg = localStorage.getItem("dynamicBackground") === "true";
-    const showCardBackground =
-      localStorage.getItem("showCardBackground") === "true";
-    const trackNumber = localStorage.getItem("showTrackNumber") === "true";
-    const animations = localStorage.getItem("showAnimations") === "true";
+    const storedSettings = {
+      dynamicBackground: localStorage.getItem("dynamicBackground") === "true",
+      showCardBackground: localStorage.getItem("showCardBackground") === "true",
+      showTrackNumber: localStorage.getItem("showTrackNumber") === "true",
+      showAnimations: localStorage.getItem("showAnimations") === "true",
+      getLatestSong: localStorage.getItem("latestSongMode") === "true",
+    };
 
-    setDynamicBackground(dynamicBg);
-    setShowCardBackground(showCardBackground);
-    setShowTrackNumber(trackNumber);
-    setShowAnimations(animations);
+    setSettings(storedSettings);
   }, []);
 
-  const toggleDynamicBackground = () => {
-    const newValue = !dynamicBackground;
-    setDynamicBackground(!dynamicBackground);
-    localStorage.setItem("dynamicBackground", String(newValue));
-  };
-
-  const toggleShowCardBackground = () => {
-    const newValue = !showCardBackground;
-    setShowCardBackground(!showCardBackground);
-    localStorage.setItem("showCardBackground", String(newValue));
-  };
-
-  const toggleShowTrackNumber = () => {
-    const newValue = !showTrackNumber;
-    setShowTrackNumber(!showTrackNumber);
-    localStorage.setItem("showTrackNumber", String(newValue));
-  };
-
-  const toggleShowAnimations = () => {
-    const newValue = !showAnimations;
-    setShowAnimations(!showAnimations);
-    localStorage.setItem("showAnimations", String(newValue));
+  const handleToggle = (settingKey: keyof SettingsType) => {
+    const newSettings = { ...settings, [settingKey]: !settings[settingKey] };
+    setSettings(newSettings);
+    localStorage.setItem(settingKey, String(newSettings[settingKey]));
   };
 
   return (
@@ -59,42 +47,14 @@ export default function Settings() {
           <h1>Settings</h1>
           <Link href="/">Go Back</Link>
         </div>
-        <div className="flex justify-between items-center py-2">
-          <span>Dynamic Background</span>
-          <button
-            className={`${dynamicBackground ? "bg-spotify hover:bg-spotifyHover" : "bg-bvLightGrey hover:bg-bvGrey"}`}
-            onClick={toggleDynamicBackground}
-          >
-            {dynamicBackground ? "Enabled" : "Disabled"}
-          </button>
-        </div>
-        <div className="flex justify-between items-center py-2">
-          <span>Show Card Background</span>
-          <button
-            className={`${showCardBackground ? "bg-spotify hover:bg-spotifyHover" : "bg-bvLightGrey hover:bg-bvGrey"}`}
-            onClick={toggleShowCardBackground}
-          >
-            {showCardBackground ? "Enabled" : "Disabled"}
-          </button>
-        </div>
-        <div className="flex justify-between items-center py-2">
-          <span>Show Track Number</span>
-          <button
-            className={`${showTrackNumber ? "bg-spotify hover:bg-spotifyHover" : "bg-bvLightGrey hover:bg-bvGrey"}`}
-            onClick={toggleShowTrackNumber}
-          >
-            {showTrackNumber ? "Enabled" : "Disabled"}
-          </button>
-        </div>
-        <div className="flex justify-between items-center py-2">
-          <span>Show Animations</span>
-          <button
-            className={`${showAnimations ? "bg-spotify hover:bg-spotifyHover" : "bg-bvLightGrey hover:bg-bvGrey"}`}
-            onClick={toggleShowAnimations}
-          >
-            {showAnimations ? "Enabled" : "Disabled"}
-          </button>
-        </div>
+        {Object.entries(settings).map(([key, value]) => (
+          <Switch
+            key={key}
+            isOn={value}
+            handleToggle={() => handleToggle(key as keyof SettingsType)}
+            label={SettingsLabels[key as keyof SettingsType]}
+          />
+        ))}
       </div>
     </div>
   );

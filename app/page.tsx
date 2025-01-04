@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MusicTab from "@/components/MusicTab";
 import UserButton from "@/components/UserButton";
 import Menu from "@/components/Menu";
@@ -7,8 +7,8 @@ import SpotifyLogo from "@/components/SpotifyLogo";
 import MediaCard from "@/components/MediaCard";
 import { applyGradientFromAlbumImage } from "@/helpers/gradient";
 import { User } from "@/types/User";
-import { gothamBook } from "@/constants/fonts";
 import { setDefaultSettings } from "@/helpers/user";
+import { isDev } from "@/helpers/dev";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -18,11 +18,9 @@ export default function Home() {
   const [playlistIndex, setPlaylistIndex] = useState<number>(0);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
+  const tokenRefreshInProgress = useRef(false);
 
   useEffect(() => {
-    // temp code
-    localStorage.removeItem("appVersion");
-
     setDefaultSettings();
 
     setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
@@ -34,6 +32,7 @@ export default function Home() {
     if (token && refresh && expiry) {
       // Check if token has expired
       if (Date.now() > parseInt(expiry)) {
+        console.log("Token expired. Refreshing...");
         handleTokenRefresh();
         return;
       }
@@ -41,7 +40,7 @@ export default function Home() {
       fetchRecentlyPlayed(token);
       setIsLoggedIn(true);
     } else {
-      setIsLoggedIn(false);
+      handleLogout();
     }
   }, []);
 
@@ -94,7 +93,11 @@ export default function Home() {
         const data = await response.json();
         setRecentlyPlayed(data.items); // All recently played tracks
         if (data.items.length > 0) {
-          setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
+          if (localStorage.getItem("latestSongMode") === "true") {
+            setPlaylistIndex(0); // Latest track
+          } else {
+            setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
+          }
         } else if (response.status === 401) {
           await handleTokenRefresh();
         } else {
@@ -116,10 +119,9 @@ export default function Home() {
 
     const clientID = "40006b94c67d48e9a0ab175351281474";
 
-    const redirectURI =
-      window.location.hostname === "localhost"
-        ? "http://localhost:3000/login"
-        : "https://musictab.netlify.app/login";
+    const redirectURI = isDev()
+      ? "http://localhost:3000/login"
+      : "https://musictab.netlify.app/login";
 
     const scopes = [
       "user-read-private",
@@ -148,9 +150,12 @@ export default function Home() {
   };
 
   const handleTokenRefresh = async () => {
+    if (tokenRefreshInProgress.current) return;
+    tokenRefreshInProgress.current = true;
+
     const refreshToken = localStorage.getItem("spotifyRefreshToken");
+    // Probably redundant
     if (!refreshToken) {
-      // Probably redundant
       handleLogout();
       return;
     }
@@ -168,6 +173,8 @@ export default function Home() {
         const data = await response.json();
         const newAccessToken = data.access_token;
 
+        if (!newAccessToken) throw new Error("Invalid access token");
+
         localStorage.setItem("spotifyAccessToken", newAccessToken);
 
         // Reset expiry time
@@ -176,8 +183,11 @@ export default function Home() {
           String(Date.now() + data.expires_in * 1000),
         );
 
-        fetchUserProfile(newAccessToken);
-        fetchRecentlyPlayed(newAccessToken);
+        await Promise.all([
+          fetchUserProfile(newAccessToken),
+          fetchRecentlyPlayed(newAccessToken),
+        ]);
+
         setIsLoggedIn(true);
       } else {
         console.error("Error refreshing token: response=", response);
@@ -186,6 +196,8 @@ export default function Home() {
     } catch (error) {
       console.error("Error refreshing token: error=", error);
       handleLogout();
+    } finally {
+      tokenRefreshInProgress.current = false;
     }
   };
 
@@ -201,9 +213,7 @@ export default function Home() {
           className="absolute top-2.5 right-2.5 rounded-3xl text-bvWhite px-8 py-1.5 bg-spotify hover:bg-spotifyHover"
           onClick={handleLogin}
         >
-          <span className={`text-sm font-semibold ${gothamBook.className}`}>
-            Login
-          </span>
+          <span className="text-sm font-semibold">Login</span>
         </button>
         <MusicTab />
       </>

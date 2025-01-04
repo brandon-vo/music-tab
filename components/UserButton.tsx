@@ -1,5 +1,4 @@
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
-import { gothamBook } from "@/constants/fonts";
 import { User } from "@/types/User";
 
 interface UserButtonProps {
@@ -20,9 +19,7 @@ const UserButton = ({ userProfile, toggleMenu, menuOpen }: UserButtonProps) => {
           alt={userProfile?.display_name || "User"}
           className="w-[28px] h-[28px] rounded-[20px] absolute left-[3px]"
         />
-        <span
-          className={`text-sm font-semibold ${gothamBook.className} pl-[10px]`}
-        >
+        <span className={`text-sm font-semibold pl-[10px]`}>
           {userProfile?.display_name || "You"}
         </span>
         {menuOpen ? (

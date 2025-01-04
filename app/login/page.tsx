@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { isDev } from "@/helpers/dev";
 
 export default function Login() {
   const router = useRouter();
@@ -20,12 +21,12 @@ export default function Login() {
       })
         .then((response) => {
           if (!response.ok) {
-            console.error("Failed to login");
+            console.error("Failed to login. response=", response);
           }
           return response.json();
         })
         .then((data) => {
-          //console.log("Logged in", data);
+          isDev() && console.log("Logged in:", data);
           localStorage.setItem("spotifyAccessToken", data.access_token);
           localStorage.setItem("spotifyRefreshToken", data.refresh_token);
           localStorage.setItem(

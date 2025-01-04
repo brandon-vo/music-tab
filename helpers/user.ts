@@ -11,4 +11,7 @@ export const setDefaultSettings = () => {
   if (!localStorage.getItem("showAnimations")) {
     localStorage.setItem("showAnimations", "true");
   }
+  if (!localStorage.getItem("latestSongMode")) {
+    localStorage.setItem("latestSongMode", "false");
+  }
 };

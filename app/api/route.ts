@@ -74,13 +74,16 @@ export async function POST(request: Request) {
   }
 
   try {
+    // throw new Error("Test error");
     if (code) {
       const tokenData = await exchangeCodeForTokens(code);
+      console.log("Token data:", tokenData);
       return NextResponse.json(tokenData);
     }
 
     if (refresh_token) {
       const newTokens = await refreshAccessToken(refresh_token);
+      console.log("New tokens:", newTokens);
       return NextResponse.json(newTokens);
     }
   } catch (error) {
