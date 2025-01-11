@@ -1,14 +1,14 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import MusicTab from "@/components/MusicTab";
-import UserButton from "@/components/UserButton";
-import Menu from "@/components/Menu";
-import SpotifyLogo from "@/components/SpotifyLogo";
 import MediaCard from "@/components/MediaCard";
-import { applyGradientFromAlbumImage } from "@/helpers/gradient";
-import { User } from "@/types/User";
-import { setDefaultSettings } from "@/helpers/user";
+import Menu from "@/components/Menu";
+import MusicTab from "@/components/MusicTab";
+import SpotifyLogo from "@/components/SpotifyLogo";
+import UserButton from "@/components/UserButton";
 import { isDev } from "@/helpers/dev";
+import { applyGradientFromAlbumImage } from "@/helpers/gradient";
+import { setDefaultSettings } from "@/helpers/user";
+import { User } from "@/types/User";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -20,42 +20,69 @@ export default function Home() {
   const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
   const tokenRefreshInProgress = useRef(false);
 
+  // Set up on initial page load
   useEffect(() => {
     setDefaultSettings();
-
     setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
+    getData();
+  }, []);
 
+  // Playlist change switches the background
+  useEffect(() => {
+    if (!dynamicBackground) return;
+    if (recentlyPlayed.length > 0) {
+      const albumImageUrl =
+        recentlyPlayed[playlistIndex]?.track.album.images[0]?.url;
+      if (albumImageUrl) {
+        applyGradientFromAlbumImage(albumImageUrl);
+      }
+    }
+  }, [playlistIndex, recentlyPlayed, dynamicBackground]);
+
+  const handleAuthenticatedFetch = async (token: string) => {
+    try {
+      await fetchUserProfile(token);
+      await fetchRecentlyPlayed(token);
+      setIsLoggedIn(true);
+      console.log("Logged in successfully!");
+    } catch (error) {
+      console.error("Error during authenticated fetch:", error);
+      handleLogout();
+    }
+  };
+
+  const getData = async () => {
     const token = localStorage.getItem("spotifyAccessToken");
     const refresh = localStorage.getItem("spotifyRefreshToken");
     const expiry = localStorage.getItem("spotifyTokenExpiry");
 
     if (token && refresh && expiry) {
       // Check if token has expired
+      //console.log(Date.now(), parseInt(expiry));
       if (Date.now() > parseInt(expiry)) {
         console.log("Token expired. Refreshing...");
-        handleTokenRefresh();
-        return;
+        handleTokenRefresh()
+          .then(() => {
+            const newToken = localStorage.getItem("spotifyAccessToken");
+            if (newToken) {
+              console.log(
+                "Fetching user profile and recently played tracks with new token...",
+              );
+              handleAuthenticatedFetch(newToken);
+            }
+          })
+          .catch((error) => {
+            console.error("Failed to refresh token:", error);
+            handleLogout();
+            return;
+          });
+      } else {
+        console.log("Fetching user profile and recently played tracks...");
+        await handleAuthenticatedFetch(token);
       }
-      fetchUserProfile(token);
-      fetchRecentlyPlayed(token);
-      setIsLoggedIn(true);
     } else {
       handleLogout();
     }
-  }, []);
-
-  useEffect(() => {
-    if (recentlyPlayed.length > 0) {
-      const albumImageUrl =
-        recentlyPlayed[playlistIndex]?.track.album.images[0]?.url;
-      if (albumImageUrl && dynamicBackground) {
-        applyGradientFromAlbumImage(albumImageUrl);
-      }
-    }
-  }, [playlistIndex, recentlyPlayed]);
-
-  const toggleMenu = () => {
-    setMenuOpen((prev) => !prev);
   };
 
   const fetchUserProfile = async (token: string) => {
@@ -69,7 +96,10 @@ export default function Home() {
         const data = await response.json();
         setUserProfile(data);
       } else if (response.status === 401) {
-        await handleTokenRefresh();
+        console.log("Refreshing access token from fetchUserProfile...");
+        await handleTokenRefresh().then(() => {
+          getData();
+        });
       } else {
         console.error("Error fetching user profile: response=", response);
       }
@@ -82,7 +112,7 @@ export default function Home() {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://api.spotify.com/v1/me/player/recently-played?limit=50`, // limit=20 by default
+        `https://api.spotify.com/v1/me/player/recently-played?limit=25`, // limit=20 by default
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -99,7 +129,10 @@ export default function Home() {
             setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
           }
         } else if (response.status === 401) {
-          await handleTokenRefresh();
+          console.log("Refreshing access token from fetchRecentlyPlayed...");
+          await handleTokenRefresh().then(() => {
+            getData();
+          });
         } else {
           console.error("Error fetching recently played tracks:", response);
         }
@@ -112,7 +145,7 @@ export default function Home() {
   };
 
   const handleLogin = () => {
-    // We shouldnt need to clear these here, but just in case
+    // We shouldnt need to clear these here, but I am keeping these here just in case
     localStorage.removeItem("spotifyAccessToken");
     localStorage.removeItem("spotifyRefreshToken");
     localStorage.removeItem("spotifyTokenExpiry");
@@ -156,6 +189,7 @@ export default function Home() {
     const refreshToken = localStorage.getItem("spotifyRefreshToken");
     // Probably redundant
     if (!refreshToken) {
+      console.log("No refresh token found in local storage. is this possible?");
       handleLogout();
       return;
     }
@@ -177,18 +211,11 @@ export default function Home() {
 
         localStorage.setItem("spotifyAccessToken", newAccessToken);
 
-        // Reset expiry time
+        // Reset expiry time to current time + new expiry time (which is 1 hour)
         localStorage.setItem(
           "spotifyTokenExpiry",
           String(Date.now() + data.expires_in * 1000),
         );
-
-        await Promise.all([
-          fetchUserProfile(newAccessToken),
-          fetchRecentlyPlayed(newAccessToken),
-        ]);
-
-        setIsLoggedIn(true);
       } else {
         console.error("Error refreshing token: response=", response);
         handleLogout();
@@ -198,6 +225,7 @@ export default function Home() {
       handleLogout();
     } finally {
       tokenRefreshInProgress.current = false;
+      console.log("Token successfully refreshed!");
     }
   };
 
@@ -228,7 +256,7 @@ export default function Home() {
       />
       <UserButton
         userProfile={userProfile}
-        toggleMenu={toggleMenu}
+        toggleMenu={() => setMenuOpen((prev) => !prev)}
         menuOpen={menuOpen}
       />
 
