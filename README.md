@@ -14,6 +14,8 @@
 Music Tab is a new tab Chrome extension that generates beautiful backgrounds based on the cover art of a recently listened to Spotify song.  
 Built with the Spotify API  
 
+Note that when you enable the Chrome extension, it essentially just redirects you to <a align="center" href="https://musictab.netlify.app/" target="_blank">musictab.netlify.app</a> when you create a new tab. This project is not exclusive to Google Chrome users, and can be done by setting up a custom redirect to that URL on a new tab creation in your favourite browser. 
+
 # Images 📷
 
 ![music-tab-collage-1](https://github.com/user-attachments/assets/5c6af010-fe01-4550-91ad-5b1b9b9c6fc1)
