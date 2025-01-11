@@ -8,17 +8,18 @@ import { isDev } from "@/helpers/dev";
 import { applyGradientFromAlbumImage } from "@/helpers/gradient";
 import { setDefaultSettings } from "@/helpers/user";
 import { User } from "@/types/User";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [userProfile, setUserProfile] = useState<User | null>(null);
   const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingSongs, setLoadingSongs] = useState<boolean>(false);
+  const [loadingUser, setLoadingUser] = useState<boolean>(false);
   const [playlistIndex, setPlaylistIndex] = useState<number>(0);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
-  const tokenRefreshInProgress = useRef(false);
+  // const tokenRefreshInProgress = useRef(false);
 
   // Set up on initial page load
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function Home() {
   const handleAuthenticatedFetch = async (token: string) => {
     try {
       await fetchUserProfile(token);
-      await fetchRecentlyPlayed(token);
+      // await fetchRecentlyPlayed(token);
       setIsLoggedIn(true);
       console.log("Logged in successfully!");
     } catch (error) {
@@ -61,21 +62,13 @@ export default function Home() {
       //console.log(Date.now(), parseInt(expiry));
       if (Date.now() > parseInt(expiry)) {
         console.log("Token expired. Refreshing...");
-        handleTokenRefresh()
-          .then(() => {
-            const newToken = localStorage.getItem("spotifyAccessToken");
-            if (newToken) {
-              console.log(
-                "Fetching user profile and recently played tracks with new token...",
-              );
-              handleAuthenticatedFetch(newToken);
-            }
-          })
-          .catch((error) => {
-            console.error("Failed to refresh token:", error);
-            handleLogout();
-            return;
-          });
+        const newToken = await handleTokenRefresh();
+        if (newToken) {
+          console.log(
+            "Fetching user profile and recently played tracks with new token...",
+          );
+          await handleAuthenticatedFetch(newToken);
+        }
       } else {
         console.log("Fetching user profile and recently played tracks...");
         await handleAuthenticatedFetch(token);
@@ -86,6 +79,7 @@ export default function Home() {
   };
 
   const fetchUserProfile = async (token: string) => {
+    setLoadingUser(true);
     try {
       const response = await fetch("https://api.spotify.com/v1/me", {
         headers: {
@@ -95,21 +89,28 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setUserProfile(data);
+        await fetchRecentlyPlayed(token);
       } else if (response.status === 401) {
-        console.log("Refreshing access token from fetchUserProfile...");
-        await handleTokenRefresh().then(() => {
-          getData();
-        });
+        console.log(
+          "Received 401 error while fetching user profile.\nRefreshing access token...",
+        );
+        const newToken = await handleTokenRefresh();
+        if (newToken) {
+          await fetchUserProfile(newToken);
+          await fetchRecentlyPlayed(newToken);
+        }
       } else {
         console.error("Error fetching user profile: response=", response);
       }
     } catch (error) {
       console.error("Error fetching user profile: error=", error);
+    } finally {
+      setLoadingUser(false);
     }
   };
 
   const fetchRecentlyPlayed = async (token: string) => {
-    setLoading(true);
+    setLoadingSongs(true);
     try {
       const response = await fetch(
         `https://api.spotify.com/v1/me/player/recently-played?limit=25`, // limit=20 by default
@@ -129,10 +130,16 @@ export default function Home() {
             setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
           }
         } else if (response.status === 401) {
-          console.log("Refreshing access token from fetchRecentlyPlayed...");
-          await handleTokenRefresh().then(() => {
-            getData();
-          });
+          console.log(
+            "401 error. not sure how this happened since it just worked for the fetchUserProfile",
+          );
+          // console.log("Received 401 error while fetching recently played tracks.\nRefreshing access token...");
+          // // const newToken = await handleTokenRefresh();
+          // const newToken = localStorage.getItem("spotifyAccessToken"); // We should have refreshed already from fetchUserProfile
+          // console.log("New token:", newToken);
+          // if (newToken) {
+          //   await fetchRecentlyPlayed(newToken);
+          // }
         } else {
           console.error("Error fetching recently played tracks:", response);
         }
@@ -140,7 +147,7 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching recently played tracks:", error);
     } finally {
-      setLoading(false);
+      setLoadingSongs(false);
     }
   };
 
@@ -182,16 +189,16 @@ export default function Home() {
     setRecentlyPlayed([]);
   };
 
-  const handleTokenRefresh = async () => {
-    if (tokenRefreshInProgress.current) return;
-    tokenRefreshInProgress.current = true;
+  const handleTokenRefresh = async (): Promise<string | null> => {
+    // if (tokenRefreshI        rogress.current) return null;
+    // tokenRefreshInProgress.current = true;
 
     const refreshToken = localStorage.getItem("spotifyRefreshToken");
     // Probably redundant
     if (!refreshToken) {
       console.log("No refresh token found in local storage. is this possible?");
       handleLogout();
-      return;
+      return null;
     }
 
     try {
@@ -216,21 +223,27 @@ export default function Home() {
           "spotifyTokenExpiry",
           String(Date.now() + data.expires_in * 1000),
         );
+
+        console.log("Token refreshed successfully!", newAccessToken);
+        return newAccessToken;
       } else {
         console.error("Error refreshing token: response=", response);
         handleLogout();
+        return null;
       }
     } catch (error) {
       console.error("Error refreshing token: error=", error);
       handleLogout();
-    } finally {
-      tokenRefreshInProgress.current = false;
-      console.log("Token successfully refreshed!");
+      return null;
     }
+    // finally {
+    //   tokenRefreshInProgress.current = false;
+    //   console.log("handleTokenRefresh done");
+    // }
   };
 
   // Loading state
-  if (isLoggedIn === null || loading) {
+  if (isLoggedIn === null || loadingSongs || loadingUser) {
     return <MusicTab />;
   }
 
