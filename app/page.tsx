@@ -87,6 +87,8 @@ export default function Home() {
     };
     if (accessToken && refreshToken && tokenExpiry) {
       fetchData();
+    } else {
+      setIsLoggedIn(false);
     }
   }, [accessToken, refreshToken, tokenExpiry]);
 
