@@ -20,12 +20,43 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [dynamicBackground, setDynamicBackground] = useState<boolean>(true);
   // const tokenRefreshInProgress = useRef(false);
+  const [retries, setRetries] = useState(0);
 
   // Set up on initial page load
   useEffect(() => {
     setDefaultSettings();
     setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
-    getData();
+
+    const getData = async () => {
+      const token = localStorage.getItem("spotifyAccessToken");
+      const refresh = localStorage.getItem("spotifyRefreshToken");
+      const expiry = localStorage.getItem("spotifyTokenExpiry");
+
+      if (token && refresh && expiry) {
+        // Check if token has expired
+        //console.log(Date.now(), parseInt(expiry));
+        if (Date.now() > parseInt(expiry)) {
+          console.log("Token expired. Refreshing...");
+          const newToken = await handleTokenRefresh();
+          if (newToken) {
+            console.log(
+              "Fetching user profile and recently played tracks with new token...",
+            );
+            await handleAuthenticatedFetch(newToken);
+          }
+        } else {
+          console.log("Fetching user profile and recently played tracks...");
+          await handleAuthenticatedFetch(token);
+        }
+      } else {
+        handleLogout();
+      }
+    };
+
+    getData().catch((error) => {
+      console.error("Error during initial page load:", error);
+      handleLogout();
+    });
   }, []);
 
   // Playlist change switches the background
@@ -40,6 +71,13 @@ export default function Home() {
     }
   }, [playlistIndex, recentlyPlayed, dynamicBackground]);
 
+  useEffect(() => {
+    if (retries > 5) {
+      console.log("Too many retries. Logging out...");
+      handleLogout();
+    }
+  }, [retries]);
+
   const handleAuthenticatedFetch = async (token: string) => {
     try {
       await fetchUserProfile(token);
@@ -48,32 +86,6 @@ export default function Home() {
       console.log("Logged in successfully!");
     } catch (error) {
       console.error("Error during authenticated fetch:", error);
-      handleLogout();
-    }
-  };
-
-  const getData = async () => {
-    const token = localStorage.getItem("spotifyAccessToken");
-    const refresh = localStorage.getItem("spotifyRefreshToken");
-    const expiry = localStorage.getItem("spotifyTokenExpiry");
-
-    if (token && refresh && expiry) {
-      // Check if token has expired
-      //console.log(Date.now(), parseInt(expiry));
-      if (Date.now() > parseInt(expiry)) {
-        console.log("Token expired. Refreshing...");
-        const newToken = await handleTokenRefresh();
-        if (newToken) {
-          console.log(
-            "Fetching user profile and recently played tracks with new token...",
-          );
-          await handleAuthenticatedFetch(newToken);
-        }
-      } else {
-        console.log("Fetching user profile and recently played tracks...");
-        await handleAuthenticatedFetch(token);
-      }
-    } else {
       handleLogout();
     }
   };
@@ -100,10 +112,10 @@ export default function Home() {
           await fetchRecentlyPlayed(newToken);
         }
       } else {
-        console.error("Error fetching user profile: response=", response);
+        throw new Error("Error fetching user profile");
       }
     } catch (error) {
-      console.error("Error fetching user profile: error=", error);
+      throw new Error("Error fetching user profile");
     } finally {
       setLoadingUser(false);
     }
@@ -141,11 +153,12 @@ export default function Home() {
           //   await fetchRecentlyPlayed(newToken);
           // }
         } else {
-          console.error("Error fetching recently played tracks:", response);
+          throw new Error("Error fetching recently played tracks");
         }
       }
     } catch (error) {
-      console.error("Error fetching recently played tracks:", error);
+      console.error("error=", error);
+      throw new Error("Error fetching recently played tracks");
     } finally {
       setLoadingSongs(false);
     }
@@ -187,10 +200,11 @@ export default function Home() {
     setIsLoggedIn(false);
     setUserProfile(null);
     setRecentlyPlayed([]);
+    setRetries(0);
   };
 
   const handleTokenRefresh = async (): Promise<string | null> => {
-    // if (tokenRefreshI        rogress.current) return null;
+    // if (tokenRefreshInProgress.current) return null;
     // tokenRefreshInProgress.current = true;
 
     const refreshToken = localStorage.getItem("spotifyRefreshToken");
@@ -200,6 +214,8 @@ export default function Home() {
       handleLogout();
       return null;
     }
+
+    setRetries((prev) => prev + 1);
 
     try {
       const response = await fetch("/api", {
@@ -213,6 +229,7 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         const newAccessToken = data.access_token;
+        // console.log("data", data);
 
         if (!newAccessToken) throw new Error("Invalid access token");
 
@@ -227,14 +244,10 @@ export default function Home() {
         console.log("Token refreshed successfully!", newAccessToken);
         return newAccessToken;
       } else {
-        console.error("Error refreshing token: response=", response);
-        handleLogout();
-        return null;
+        throw new Error("Error refreshing token");
       }
     } catch (error) {
-      console.error("Error refreshing token: error=", error);
-      handleLogout();
-      return null;
+      throw new Error("Error refreshing token");
     }
     // finally {
     //   tokenRefreshInProgress.current = false;

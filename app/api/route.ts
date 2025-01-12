@@ -50,6 +50,7 @@ async function refreshAccessToken(refreshToken: string) {
       body: new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
+        client_id: clientID,
       }),
     },
   );
