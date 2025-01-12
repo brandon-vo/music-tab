@@ -19,8 +19,7 @@ export const applyGradientFromAlbumImage = async (imgSrc: string) => {
           ? [`${lightVibrant} 0%`, `${vibrant} 50%`, `${darkVibrant} 100%`]
           : [`${lightMuted} 0%`, `${muted} 50%`, `${darkMuted} 100%`];
 
-    const gradientType =
-      Math.random() > 0.5 ? "linear-gradient" : "radial-gradient";
+    const gradientType = Math.random() > 0.5 ? "linear-gradient" : "radial-gradient";
     const randomAngle = Math.floor(Math.random() * 360);
 
     const gradientPattern =
@@ -38,5 +37,29 @@ export const applyGradientFromAlbumImage = async (imgSrc: string) => {
     }
   } catch (err) {
     console.error("Error extracting colors:", err);
+  }
+};
+
+export const isDev = () => {
+  return window.location.hostname === "localhost";
+};
+
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const setDefaultSettings = () => {
+  if (!localStorage.getItem("dynamicBackground")) {
+    localStorage.setItem("dynamicBackground", "true");
+  }
+  if (!localStorage.getItem("showCardBackground")) {
+    localStorage.setItem("showCardBackground", "true");
+  }
+  if (!localStorage.getItem("showTrackNumber")) {
+    localStorage.setItem("showTrackNumber", "false");
+  }
+  if (!localStorage.getItem("showAnimations")) {
+    localStorage.setItem("showAnimations", "true");
+  }
+  if (!localStorage.getItem("getLatestSong")) {
+    localStorage.setItem("getLatestSong", "false");
   }
 };

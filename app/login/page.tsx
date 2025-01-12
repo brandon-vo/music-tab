@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { isDev } from "@/helpers";
 import { useRouter } from "next/navigation";
-import { isDev } from "@/helpers/dev";
+import { useEffect } from "react";
 
 export default function Login() {
   const router = useRouter();

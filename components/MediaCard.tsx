@@ -1,5 +1,5 @@
-import { applyGradientFromAlbumImage } from "@/helpers/gradient";
-import { use, useEffect, useState } from "react";
+import { applyGradientFromAlbumImage } from "@/helpers";
+import { useEffect, useState } from "react";
 import { IoRefreshCircleSharp } from "react-icons/io5";
 import {
   TbPlayerTrackNextFilled,
@@ -89,7 +89,7 @@ const MediaCard = ({
           <img
             src={recentlyPlayed[playlistIndex]?.track.album.images[0]?.url}
             alt={recentlyPlayed[playlistIndex]?.track.album.name}
-            className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
+            className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400
               ${
                 swipeDirection === "prev"
                   ? "animate-swipeOutRight"
@@ -110,7 +110,7 @@ const MediaCard = ({
                 ]?.track.album.images[0]?.url
               }
               alt="Next Image"
-              className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400 
+              className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400
                 ${
                   swipeDirection === "prev"
                     ? "animate-swipeInRight"
