@@ -16,7 +16,7 @@ export default function Home() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [tokenExpiry, setTokenExpiry] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [userProfile, setUserProfile] = useState<User | null>(null);
   const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
   const [loadingSongs, setLoadingSongs] = useState<boolean>(false);
@@ -85,10 +85,10 @@ export default function Home() {
           });
       }
     };
-    if (accessToken && refreshToken && tokenExpiry && !isLoggedIn) {
+    if (accessToken && refreshToken && tokenExpiry) {
       fetchData();
     }
-  }, [accessToken, refreshToken, tokenExpiry, isLoggedIn]);
+  }, [accessToken, refreshToken, tokenExpiry]);
 
   const fetchUserProfile = async () => {
     setLoadingUser(true);
@@ -206,6 +206,9 @@ export default function Home() {
     localStorage.removeItem("spotifyAccessToken");
     localStorage.removeItem("spotifyRefreshToken");
     localStorage.removeItem("spotifyTokenExpiry");
+    setAccessToken(null);
+    setRefreshToken(null);
+    setTokenExpiry(null);
     setIsLoggedIn(false);
     setUserProfile(null);
     setRecentlyPlayed([]);
