@@ -13,9 +13,9 @@ import { User } from "@/types/User";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [tokenExpiry, setTokenExpiry] = useState<string | null>(null);
+  // const [accessToken, setAccessToken] = useState<string | null>(null);
+  // const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  // const [tokenExpiry, setTokenExpiry] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [userProfile, setUserProfile] = useState<User | null>(null);
   const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
@@ -36,9 +36,9 @@ export default function Home() {
 
     setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
     setGetLatestSong(localStorage.getItem("getLatestSong") === "true");
-    setAccessToken(token);
-    setRefreshToken(refresh);
-    setTokenExpiry(expiry);
+    // setAccessToken(token);
+    // setRefreshToken(refresh);
+    // setTokenExpiry(expiry);
 
     const fetchData = async () => {
       const timeToRefresh = parseInt(expiry!) - Date.now();
@@ -156,7 +156,9 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ refresh_token: refreshToken }),
+        body: JSON.stringify({
+          refresh_token: localStorage.getItem("spotifyRefreshToken"),
+        }),
       });
 
       if (response.ok) {
@@ -168,10 +170,10 @@ export default function Home() {
         const newExpiry = String(Date.now() + data.expires_in * 1000);
 
         localStorage.setItem("spotifyAccessToken", newAccessToken);
-        setAccessToken(newAccessToken);
+        // setAccessToken(newAccessToken);
 
         localStorage.setItem("spotifyTokenExpiry", newExpiry);
-        setTokenExpiry(newExpiry);
+        // setTokenExpiry(newExpiry);
 
         console.log("Token refreshed successfully!", newAccessToken);
       } else {
@@ -211,9 +213,9 @@ export default function Home() {
     localStorage.removeItem("spotifyAccessToken");
     localStorage.removeItem("spotifyRefreshToken");
     localStorage.removeItem("spotifyTokenExpiry");
-    setAccessToken(null);
-    setRefreshToken(null);
-    setTokenExpiry(null);
+    // setAccessToken(null);
+    // setRefreshToken(null);
+    // setTokenExpiry(null);
     setIsLoggedIn(false);
     setUserProfile(null);
     setRecentlyPlayed([]);
