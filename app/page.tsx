@@ -29,29 +29,19 @@ export default function Home() {
   // Set up on initial page load
   useEffect(() => {
     setDefaultSettings();
+
+    const token = localStorage.getItem("spotifyAccessToken");
+    const refresh = localStorage.getItem("spotifyRefreshToken");
+    const expiry = localStorage.getItem("spotifyTokenExpiry");
+
     setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
     setGetLatestSong(localStorage.getItem("getLatestSong") === "true");
-    setAccessToken(localStorage.getItem("spotifyAccessToken"));
-    setRefreshToken(localStorage.getItem("spotifyRefreshToken"));
-    setTokenExpiry(localStorage.getItem("spotifyTokenExpiry"));
-  }, []);
+    setAccessToken(token);
+    setRefreshToken(refresh);
+    setTokenExpiry(expiry);
 
-  // Playlist change switches the background
-  useEffect(() => {
-    if (!dynamicBackground) return;
-    if (recentlyPlayed.length > 0) {
-      const albumImageUrl =
-        recentlyPlayed[playlistIndex]?.track.album.images[0]?.url;
-      if (albumImageUrl) {
-        applyGradientFromAlbumImage(albumImageUrl);
-      }
-    }
-  }, [playlistIndex, recentlyPlayed, dynamicBackground]);
-
-  // Fetch user profile and recently played tracks
-  useEffect(() => {
     const fetchData = async () => {
-      const timeToRefresh = parseInt(tokenExpiry!) - Date.now();
+      const timeToRefresh = parseInt(expiry!) - Date.now();
 
       if (timeToRefresh <= 0) {
         const minutesExpired = timeToRefresh / -60000;
@@ -70,7 +60,7 @@ export default function Home() {
           .then(() => setIsLoggedIn(true))
           .catch((error) => {
             console.error("Error during token refresh or data fetch:", error);
-            handleLogout();
+            // handleLogout();
           });
       } else {
         console.log(
@@ -81,30 +71,44 @@ export default function Home() {
           .then(() => setIsLoggedIn(true))
           .catch((error) => {
             console.error("Error during data fetch:", error);
-            handleLogout();
+            // handleLogout();
           });
       }
     };
-    if (accessToken && refreshToken && tokenExpiry) {
+    if (token && refresh && expiry) {
       fetchData();
     } else {
       setIsLoggedIn(false);
     }
-  }, [accessToken, refreshToken, tokenExpiry]);
+  }, []);
+
+  // Playlist change switches the background
+  useEffect(() => {
+    if (!dynamicBackground) return;
+    if (recentlyPlayed.length > 0) {
+      const albumImageUrl =
+        recentlyPlayed[playlistIndex]?.track.album.images[0]?.url;
+      if (albumImageUrl) {
+        applyGradientFromAlbumImage(albumImageUrl);
+      }
+    }
+  }, [playlistIndex, recentlyPlayed, dynamicBackground]);
 
   const fetchUserProfile = async () => {
+    const token = localStorage.getItem("spotifyAccessToken");
+
     setLoadingUser(true);
     try {
       const response = await fetch("https://api.spotify.com/v1/me", {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       if (response.ok) {
         const data = await response.json();
         setUserProfile(data);
       } else {
-        throw new Error("Failed to fetch user profile after retries");
+        throw new Error("Failed to fetch user profile");
       }
     } catch (error) {
       throw new Error("Tried fetching user profile");
@@ -114,13 +118,14 @@ export default function Home() {
   };
 
   const fetchRecentlyPlayed = async () => {
+    const token = localStorage.getItem("spotifyAccessToken");
     setLoadingSongs(true);
     try {
       const response = await fetch(
         `https://api.spotify.com/v1/me/player/recently-played?limit=25`,
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -134,9 +139,7 @@ export default function Home() {
             setPlaylistIndex(Math.floor(Math.random() * data.items.length)); // Random track to start with
           }
         } else {
-          throw new Error(
-            "Failed to fetch recently played tracks after retries",
-          );
+          throw new Error("Failed to fetch recently played tracks");
         }
       }
     } catch (error) {
