@@ -16,9 +16,7 @@ export default function Settings() {
     showAnimations: true,
   });
   const [minDuration, maxDuration] = [0, 2500];
-  const [duration, setDuration] = useState(
-    localStorage.getItem("fadeInBackgroundDuration") || 750,
-  );
+  const [duration, setDuration] = useState(750);
 
   useEffect(() => {
     // redirect to login page if not logged in
@@ -35,8 +33,12 @@ export default function Settings() {
       showAnimations: localStorage.getItem("showAnimations") === "true",
     };
 
+    const storedDuration = parseInt(
+      localStorage.getItem("fadeInBackgroundDuration") || "750",
+    );
+
     setToggleSettings(storedSettings);
-    setDuration(localStorage.getItem("fadeInBackgroundDuration") || 750);
+    setDuration(storedDuration);
   }, []);
 
   const handleToggle = (settingKey: keyof ToggleSettingsType) => {
@@ -53,7 +55,7 @@ export default function Settings() {
       minDuration,
       Math.min(maxDuration, parseInt(e.target.value)),
     );
-    setDuration(String(newDuration));
+    setDuration(newDuration);
     localStorage.setItem("fadeInBackgroundDuration", String(newDuration));
   };
 
