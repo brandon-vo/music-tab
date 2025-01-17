@@ -1,7 +1,7 @@
 "use client";
 
 import Switch from "@/components/Switch";
-import { SettingsLabels } from "@/constants/SettingsLabels";
+import { ToggleSettingsLabels } from "@/constants/SettingsLabels";
 import { ToggleSettingsType } from "@/types/Settings";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -69,7 +69,7 @@ export default function Settings() {
             key={key}
             isOn={value}
             handleToggle={() => handleToggle(key as keyof ToggleSettingsType)}
-            label={SettingsLabels[key as keyof ToggleSettingsType]}
+            label={ToggleSettingsLabels[key as keyof ToggleSettingsType]}
           />
         ))}
         <div className="flex flex-col gap-4 mt-2">
