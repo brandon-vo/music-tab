@@ -48,7 +48,6 @@ a.linkButton:hover {
 }
 
 #background-overlay {
-  transition: opacity 0.25s ease-in-out;
   background-repeat: no-repeat;
   background-size: cover;
   opacity: 0;

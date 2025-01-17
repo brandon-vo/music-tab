@@ -60,7 +60,7 @@ export default function Home() {
           .then(() => setIsLoggedIn(true))
           .catch((error) => {
             console.error("Error during token refresh or data fetch:", error);
-            // handleLogout();
+            usePreviouslyFetchedData();
           });
       } else {
         console.log(
@@ -71,7 +71,10 @@ export default function Home() {
           .then(() => setIsLoggedIn(true))
           .catch((error) => {
             console.error("Error during data fetch:", error);
-            // handleLogout();
+            usePreviouslyFetchedData();
+
+            console.log("Attempting to refresh token...");
+            handleTokenRefresh();
           });
       }
     };
@@ -94,6 +97,13 @@ export default function Home() {
     }
   }, [playlistIndex, recentlyPlayed, dynamicBackground]);
 
+  const usePreviouslyFetchedData = () => {
+    console.log("Using previously fetched data...");
+    setUserProfile(JSON.parse(localStorage.getItem("userProfile")!));
+    setRecentlyPlayed(JSON.parse(localStorage.getItem("recentlyPlayed")!));
+    setIsLoggedIn(true);
+  };
+
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("spotifyAccessToken");
 
@@ -107,6 +117,7 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setUserProfile(data);
+        localStorage.setItem("userProfile", JSON.stringify(data));
       } else {
         throw new Error("Failed to fetch user profile");
       }
@@ -132,6 +143,7 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setRecentlyPlayed(data.items); // All recently played tracks
+        localStorage.setItem("recentlyPlayed", JSON.stringify(data.items));
         if (data.items.length > 0) {
           if (getLatestSong) {
             setPlaylistIndex(0); // Latest track
@@ -213,6 +225,8 @@ export default function Home() {
     localStorage.removeItem("spotifyAccessToken");
     localStorage.removeItem("spotifyRefreshToken");
     localStorage.removeItem("spotifyTokenExpiry");
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("recentlyPlayed");
     // setAccessToken(null);
     // setRefreshToken(null);
     // setTokenExpiry(null);

@@ -79,7 +79,7 @@ const MediaCard = ({
   };
 
   return (
-    <div className="flex justify-center items-center flex-col h-dvh translate-y-[-8%] scale-80 sm:scale-85 md:scale-90 lg:scale-100 xl:scale-110 transition-all">
+    <div className="flex justify-center items-center flex-col h-dvh translate-y-[-4%] md:translate-y-[-8%] scale-80 sm:scale-85 md:scale-90 lg:scale-100 xl:scale-110 transition-all">
       <div
         className={`relative flex flex-col justify-center items-center ${!showCardBackground ? "bg-transparent" : "bg-black/[.5] shadow-xl"} rounded-lg max-w-[300px]`}
       >
@@ -111,11 +111,7 @@ const MediaCard = ({
               }
               alt="Next Image"
               className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400
-                ${
-                  swipeDirection === "prev"
-                    ? "animate-swipeInRight"
-                    : "animate-swipeInLeft"
-                }`}
+                ${swipeDirection === "prev" ? "animate-swipeInRight" : "animate-swipeInLeft"}`}
             />
           )}
         </div>

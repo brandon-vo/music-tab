@@ -1,4 +1,4 @@
-export type SettingsType = {
+export type ToggleSettingsType = {
   dynamicBackground: boolean;
   showCardBackground: boolean;
   showTrackNumber: boolean;
