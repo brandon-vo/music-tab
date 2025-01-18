@@ -9,9 +9,9 @@ const Switch = ({ isOn, handleToggle, label }: SwitchProps) => {
     <div className="flex justify-between items-center py-2">
       <span className="select-none">{label}</span>
       <div
-        className={`relative w-14 h-8 flex items-center cursor-pointer ${
-          isOn ? "bg-spotify" : "bg-gray-300"
-        } rounded-full transition-all shadow-inner duration-300`}
+        className={`relative w-14 h-8 flex items-center cursor-pointer
+          rounded-full transition-all shadow-inner duration-300
+          ${isOn ? "bg-spotify" : "bg-gray-300"} `}
         onClick={handleToggle}
       >
         <div

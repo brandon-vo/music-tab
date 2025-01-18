@@ -1,4 +1,4 @@
-import { applyGradientFromAlbumImage } from "@/helpers";
+import { applyGradientFromAlbumImage } from "@/helpers/utils";
 import { useEffect, useState } from "react";
 import { IoRefreshCircleSharp } from "react-icons/io5";
 import {
@@ -79,17 +79,22 @@ const MediaCard = ({
   };
 
   return (
-    <div className="flex justify-center items-center flex-col h-dvh translate-y-[-4%] md:translate-y-[-8%] scale-80 sm:scale-85 md:scale-90 lg:scale-100 xl:scale-110 transition-all">
+    <div
+      className="flex justify-center items-center flex-col h-dvh translate-y-[-4%] md:translate-y-[-8%]
+    scale-80 sm:scale-85 md:scale-90 lg:scale-100 xl:scale-110 transition-all"
+    >
       <div
-        className={`relative flex flex-col justify-center items-center ${!showCardBackground ? "bg-transparent" : "bg-black/[.5] shadow-xl"} rounded-lg max-w-[300px]`}
+        className={`relative flex flex-col justify-center items-center rounded-lg max-w-[300px]
+          ${!showCardBackground ? "bg-transparent" : "bg-black/[.5] shadow-xl"} `}
       >
         <div
-          className={`relative w-[300px] h-[300px] overflow-hidden rounded-t-lg ${!showCardBackground && "rounded-b-lg"}`}
+          className={`relative w-[300px] h-[300px] overflow-hidden rounded-t-lg${!showCardBackground && "rounded-b-lg"}`}
         >
           <img
             src={recentlyPlayed[playlistIndex]?.track.album.images[0]?.url}
             alt={recentlyPlayed[playlistIndex]?.track.album.name}
-            className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400
+            className={`absolute w-full h-full object-cover select-none rounded-t-lg
+              ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400
               ${
                 swipeDirection === "prev"
                   ? "animate-swipeOutRight"
@@ -110,7 +115,8 @@ const MediaCard = ({
                 ]?.track.album.images[0]?.url
               }
               alt="Next Image"
-              className={`absolute w-full h-full object-cover select-none rounded-t-lg ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400
+              className={`absolute w-full h-full object-cover select-none rounded-t-lg
+                ${!showCardBackground && "rounded-b-lg"} transition-transform duration-400
                 ${swipeDirection === "prev" ? "animate-swipeInRight" : "animate-swipeInLeft"}`}
             />
           )}
@@ -136,11 +142,13 @@ const MediaCard = ({
             className="flex justify-center items-center gap-4 py-2 rounded-md"
           >
             <TbPlayerTrackPrevFilled
-              className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"} hover:scale-110 active:scale-95 transition duration-50`}
+              className={`w-[30px] h-[30px] hover:scale-110 active:scale-95 transition duration-50
+                ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"}`}
               onClick={() => handleSwipe("prev")}
             />
             <IoRefreshCircleSharp
-              className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"} hover:scale-110 active:scale-95 transition duration-50`}
+              className={`w-[30px] h-[30px] hover:scale-110 active:scale-95 transition duration-50
+                ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"}`}
               onClick={() =>
                 applyGradientFromAlbumImage(
                   recentlyPlayed[playlistIndex]?.track.album.images[0]?.url,
@@ -148,13 +156,15 @@ const MediaCard = ({
               }
             />
             <TbPlayerTrackNextFilled
-              className={`w-[30px] h-[30px] ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"} hover:scale-110 active:scale-95 transition duration-50`}
+              className={`w-[30px] h-[30px] hover:scale-110 active:scale-95 transition duration-50
+                ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvGrey"}`}
               onClick={() => handleSwipe("next")}
             />
           </div>
           {showTrackNumber && (
             <span
-              className={`absolute ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"} text-[0.7rem] bottom-1 right-2 select-none`}
+              className={`absolute text-[0.7rem] bottom-1 right-2 select-none
+                ${!showCardBackground ? "text-bvWhite drop-shadow-md" : "text-bvLightGrey"}`}
             >
               {playlistIndex + 1}/{recentlyPlayed.length}
             </span>

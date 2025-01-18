@@ -1,6 +1,6 @@
 "use client";
 
-import { isDev } from "@/helpers";
+import { isDev } from "@/helpers/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

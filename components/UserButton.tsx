@@ -1,5 +1,5 @@
-import { FaCaretDown, FaCaretUp } from "react-icons/fa";
 import { User } from "@/types/User";
+import { FaCaretDown, FaCaretUp } from "react-icons/fa";
 
 interface UserButtonProps {
   userProfile: User | null;

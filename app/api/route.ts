@@ -75,7 +75,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    // throw new Error("Test error");
     if (code) {
       const tokenData = await exchangeCodeForTokens(code);
       console.log("Token data:", tokenData);
