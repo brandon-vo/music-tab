@@ -33,6 +33,7 @@ export default function Login() {
             "spotifyTokenExpiry",
             String(Date.now() + data.expires_in * 1000),
           );
+          localStorage.setItem("spotifyUserId", data.user_id);
           router.push("/");
         })
         .catch((error) => {

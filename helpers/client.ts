@@ -69,7 +69,11 @@ export const fetchUserProfile = async () => {
     });
     if (response.ok) {
       const data = await response.json();
-      localStorage.setItem("userProfile", JSON.stringify(data));
+      if (data.id !== localStorage.getItem("spotifyUserId")) {
+        console.log("Somehow logged into someone elses account...");
+        throw new Error("User ID mismatch");
+      }
+      localStorage.setItem("spotifyUserProfile", JSON.stringify(data));
       return data;
     } else {
       throw new Error("Failed to fetch user profile");
@@ -92,7 +96,7 @@ export const fetchRecentlyPlayed = async (getLatestSong: boolean) => {
     );
     if (response.ok) {
       const data = await response.json();
-      localStorage.setItem("recentlyPlayed", JSON.stringify(data.items)); // All recently played tracks
+      localStorage.setItem("spotifyRecentlyPlayed", JSON.stringify(data.items)); // All recently played tracks
       return {
         recentlyPlayed: data.items,
         playlistIndex: getLatestSong
@@ -114,8 +118,8 @@ export const usePreviouslyFetchedData = (
 ) => {
   console.log("Using previously fetched data...");
 
-  setUserProfile(JSON.parse(localStorage.getItem("userProfile")!));
-  setRecentlyPlayed(JSON.parse(localStorage.getItem("recentlyPlayed")!));
+  setUserProfile(JSON.parse(localStorage.getItem("spotifyUserProfile")!));
+  setRecentlyPlayed(JSON.parse(localStorage.getItem("spotifyRecentlyPlayed")!));
   setIsLoggedIn(true);
 };
 
@@ -154,8 +158,9 @@ export const handleLogout = (
   localStorage.removeItem("spotifyAccessToken");
   localStorage.removeItem("spotifyRefreshToken");
   localStorage.removeItem("spotifyTokenExpiry");
-  localStorage.removeItem("userProfile");
-  localStorage.removeItem("recentlyPlayed");
+  localStorage.removeItem("spotifyUserProfile");
+  localStorage.removeItem("spotifyRecentlyPlayed");
+  localStorage.removeItem("spotifyUserId");
 
   // Reset state in the component
   setIsLoggedIn(false);

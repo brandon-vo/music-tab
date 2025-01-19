@@ -37,6 +37,13 @@ export default function Home() {
     const token = localStorage.getItem("spotifyAccessToken");
     const refresh = localStorage.getItem("spotifyRefreshToken");
     const expiry = localStorage.getItem("spotifyTokenExpiry");
+    const user_id = localStorage.getItem("spotifyUserId");
+
+    if (!user_id) {
+      alert("Music Tab just went through a small update. Please log in again");
+      handleLogout(setIsLoggedIn, setUserProfile, setRecentlyPlayed);
+      return;
+    }
 
     setDynamicBackground(localStorage.getItem("dynamicBackground") === "true");
     setGetLatestSong(localStorage.getItem("getLatestSong") === "true");

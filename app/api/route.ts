@@ -1,5 +1,20 @@
 import { NextResponse } from "next/server";
 
+async function fetchSpotifyUserId(accessToken: string) {
+  const response = await fetch("https://api.spotify.com/v1/me", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch Spotify user ID");
+  }
+
+  const userData = await response.json();
+  return userData.id;
+}
+
 async function exchangeCodeForTokens(code: string) {
   const clientID = process.env.SPOTIFY_CLIENT_ID!;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET!;
@@ -28,6 +43,9 @@ async function exchangeCodeForTokens(code: string) {
   }
 
   const tokenData = await tokenResponse.json();
+
+  tokenData.user_id = await fetchSpotifyUserId(tokenData.access_token);
+
   return tokenData;
 }
 
